@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="ta" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Life Expensive - Personal Expense Tracker</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome for App Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Outfit"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              dark: '#0f172a',
+              card: '#1e293b',
+              accent: '#6366f1',
+              travel: '#38bdf8',
+              food: '#f97316',
+              other: '#a855f7'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Mobile App Look & Feel */
+    body {
+      background-color: #090d16;
+      color: #f8fafc;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    .glass-pill {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Smooth page animations */
+    .view-screen {
+      transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    
+    /* Active feedback */
+    .touch-pop:active {
+      transform: scale(0.97);
+    }
+  </style>
+</head>
+<body class="h-full flex justify-center bg-slate-950 overflow-hidden">
+
+  <!-- Mobile App Frame Container -->
+  <div class="w-full max-w-md h-full flex flex-col bg-slate-900 border-x border-slate-800/80 shadow-2xl relative overflow-hidden">
+    
+    <!-- Toast Notification Message -->
+    <div id="toastMessage" class="absolute top-5 left-1/2 -translate-x-1/2 z-50 bg-indigo-600/90 backdrop-blur-md text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg border border-indigo-400/30 flex items-center gap-2 transform -translate-y-16 transition-all duration-300 pointer-events-none">
+      <i class="fa-solid fa-circle-check text-emerald-400"></i>
+      <span id="toastText">Saved successfully!</span>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- SCREEN 1: MAIN DASHBOARD VIEW                  -->
+    <!-- ============================================== -->
+    <div id="screenDashboard" class="view-screen w-full h-full flex flex-col justify-between p-4 overflow-y-auto hide-scrollbar">
+      
+      <!-- Header -->
+      <div>
+        <div class="flex items-center justify-between pt-2 pb-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <i class="fa-solid fa-wallet text-white text-lg"></i>
+            </div>
+            <div>
+              <h1 class="text-xl font-bold tracking-tight font-display text-white">Life Expensive</h1>
+              <p class="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                <i class="fa-regular fa-calendar text-[10px] text-indigo-400"></i>
+                <span id="headerCurrentMonthYear">October 2026</span>
+              </p>
+            </div>
+          </div>
+          
+          <button onclick="toggleDataModal()" class="w-9 h-9 rounded-xl glass-pill flex items-center justify-center text-slate-300 hover:text-white touch-pop active:bg-slate-800" title="Settings / Info">
+            <i class="fa-solid fa-gear text-sm"></i>
+          </button>
+        </div>
+
+        <!-- HERO: Current Month's Total Expense (Tappable for Analytics & History) -->
+        <div onclick="navigateTo('screenMonthDetails')" class="relative overflow-hidden group touch-pop cursor-pointer mt-2 rounded-3xl p-5 bg-gradient-to-br from-indigo-900/70 via-slate-800/80 to-purple-950/60 border border-indigo-500/30 shadow-xl shadow-indigo-950/40">
+          <!-- Background Glow Effect -->
+          <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none"></div>
+          <div class="absolute -left-6 -top-6 w-24 h-24 bg-purple-500/15 rounded-full blur-xl pointer-events-none"></div>
+
+          <div class="flex items-center justify-between text-indigo-200 text-xs font-semibold uppercase tracking-wider mb-1.5">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Present Month Total
+            </span>
+            <span class="text-[11px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-400/20 flex items-center gap-1">
+              History & Weekly <i class="fa-solid fa-chevron-right text-[9px]"></i>
+            </span>
+          </div>
+
+          <div class="flex items-baseline space-x-1 my-1">
+            <span class="text-2xl font-semibold text-indigo-400 font-display">₹</span>
+            <span id="dashTotalExpense" class="text-4xl font-extrabold text-white tracking-tight font-display">0</span>
+          </div>
+
+          <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-700/50 text-[11px] text-slate-400">
+            <span>Tap to view detailed breakdown</span>
+            <span id="dashEntriesCount" class="font-medium text-slate-300">0 transactions</span>
+          </div>
+        </div>
+
+        <!-- Categories Section Label -->
+        <div class="flex items-center justify-between mt-6 mb-3 px-1">
+          <h2 class="text-sm font-semibold tracking-wide text-slate-300 uppercase">Categories</h2>
+          <span class="text-[11px] text-slate-500">Tap to add or view</span>
+        </div>
+
+        <!-- 3 CATEGORY CARDS: Travel, Food, Other -->
+        <div class="space-y-3.5">
+          
+          <!-- 1. Travel Card -->
+          <div onclick="openCategoryView('travel')" class="touch-pop cursor-pointer glass-card p-4 rounded-2xl flex items-center justify-between border-l-4 border-l-sky-400 hover:border-slate-600 transition-all">
+            <div class="flex items-center space-x-3.5">
+              <div class="w-12 h-12 rounded-2xl bg-sky-500/15 text-sky-400 flex items-center justify-center text-xl shadow-inner border border-sky-500/20">
+                <i class="fa-solid fa-car-side"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-white text-base">Travel</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Petrol, Bus, Cab & Trips</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-xs text-slate-400 font-medium">This Month</div>
+              <div class="text-lg font-bold text-sky-300 font-display">₹<span id="dashTravelTotal">0</span></div>
+            </div>
+          </div>
+
+          <!-- 2. Food Card -->
+          <div onclick="openCategoryView('food')" class="touch-pop cursor-pointer glass-card p-4 rounded-2xl flex items-center justify-between border-l-4 border-l-orange-400 hover:border-slate-600 transition-all">
+            <div class="flex items-center space-x-3.5">
+              <div class="w-12 h-12 rounded-2xl bg-orange-500/15 text-orange-400 flex items-center justify-center text-xl shadow-inner border border-orange-500/20">
+                <i class="fa-solid fa-burger"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-white text-base">Food</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Snacks, Dining, Groceries</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-xs text-slate-400 font-medium">This Month</div>
+              <div class="text-lg font-bold text-orange-300 font-display">₹<span id="dashFoodTotal">0</span></div>
+            </div>
+          </div>
+
+          <!-- 3. Other Card -->
+          <div onclick="openCategoryView('other')" class="touch-pop cursor-pointer glass-card p-4 rounded-2xl flex items-center justify-between border-l-4 border-l-purple-400 hover:border-slate-600 transition-all">
+            <div class="flex items-center space-x-3.5">
+              <div class="w-12 h-12 rounded-2xl bg-purple-500/15 text-purple-400 flex items-center justify-center text-xl shadow-inner border border-purple-500/20">
+                <i class="fa-solid fa-shapes"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-white text-base">Other</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Recharge, Shopping, Bills</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-xs text-slate-400 font-medium">This Month</div>
+              <div class="text-lg font-bold text-purple-300 font-display">₹<span id="dashOtherTotal">0</span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Footer Quick Status -->
+      <div class="pt-6 pb-2 text-center text-xs text-slate-500">
+        <p>🔒 100% Private • Stored securely on your device</p>
+      </div>
+
+    </div>
+
+    <!-- ============================================== -->
+    <!-- SCREEN 2: CATEGORY EXPENSE DETAIL VIEW         -->
+    <!-- ============================================== -->
+    <div id="screenCategoryDetails" class="view-screen w-full h-full flex flex-col bg-slate-900 hidden overflow-hidden">
+      
+      <!-- Top Bar -->
+      <div class="p-4 border-b border-slate-800/80 flex items-center justify-between bg-slate-950/40 backdrop-blur-md">
+        <button onclick="navigateTo('screenDashboard')" class="w-10 h-10 rounded-2xl glass-pill flex items-center justify-center text-slate-200 touch-pop active:bg-slate-800">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div class="text-center">
+          <h2 id="catViewTitle" class="text-base font-bold text-white tracking-wide">Travel Expensive</h2>
+          <p id="catViewSubtitle" class="text-[11px] text-slate-400">Current Month</p>
+        </div>
+        <div class="w-10 h-10 flex items-center justify-center">
+          <span id="catViewIconBadge" class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold"></span>
+        </div>
+      </div>
+
+      <!-- Main Category Content -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-4 hide-scrollbar">
+        
+        <!-- Category Month Total Card -->
+        <div id="catTotalCard" class="p-4 rounded-2xl glass-card border flex items-center justify-between">
+          <div>
+            <p class="text-xs text-slate-400">This Month's Spending</p>
+            <div class="text-2xl font-extrabold text-white font-display mt-0.5">
+              ₹<span id="catSpentTotal">0</span>
+            </div>
+          </div>
+          <div id="catTransactionCountBadge" class="text-xs px-2.5 py-1 rounded-full font-medium bg-slate-800 text-slate-300">
+            0 entries
+          </div>
+        </div>
+
+        <!-- Input Bar Section to Add Expense -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-700/60 shadow-lg">
+          <p class="text-xs font-semibold uppercase text-slate-300 tracking-wider mb-2.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-plus-circle text-indigo-400"></i> Selavu Add Pannunga
+          </p>
+          
+          <form id="addExpenseForm" onsubmit="handleFormSubmit(event)" class="space-y-3">
+            <!-- Amount Input (Prominent) -->
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">₹</span>
+              <input 
+                type="number" 
+                id="expenseAmount" 
+                inputmode="decimal"
+                step="any"
+                required
+                placeholder="Amount (e.g. 150)" 
+                class="w-full bg-slate-950/80 border border-slate-700/80 focus:border-indigo-500 rounded-xl py-3 pl-9 pr-3 text-white text-lg font-semibold placeholder:text-slate-500 focus:outline-none transition-all"
+              />
+            </div>
+
+            <!-- Note / Description (Optional) -->
+            <div class="relative">
+              <input 
+                type="text" 
+                id="expenseNote" 
+                placeholder="Note / Enna selavu? (optional)" 
+                class="w-full bg-slate-950/80 border border-slate-700/80 focus:border-indigo-500 rounded-xl py-2.5 px-3 text-slate-200 text-sm placeholder:text-slate-500 focus:outline-none transition-all"
+              />
+            </div>
+
+            <!-- Date Selector (Default today) -->
+            <div class="flex items-center space-x-2">
+              <label for="expenseDate" class="text-xs text-slate-400 shrink-0">Date:</label>
+              <input 
+                type="date" 
+                id="expenseDate" 
+                required
+                class="bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none w-full"
+              />
+            </div>
+
+            <!-- Save Button -->
+            <button 
+              type="submit" 
+              id="catSubmitBtn" 
+              class="w-full py-3 rounded-xl font-bold text-white shadow-lg touch-pop transition-all flex items-center justify-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Save Expense</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Recent Category Expense History Section -->
+        <div>
+          <div class="flex items-center justify-between mb-2 px-1">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Recent Records</h3>
+            <span class="text-[11px] text-slate-500" id="catRecordsNotice">Sorted by newest</span>
+          </div>
+
+          <!-- Expense List Container -->
+          <div id="catExpenseList" class="space-y-2">
+            <!-- Dynamic entries injected here -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ============================================== -->
+    <!-- SCREEN 3: MONTHLY HISTORY & WEEKLY ANALYTICS   -->
+    <!-- ============================================== -->
+    <div id="screenMonthDetails" class="view-screen w-full h-full flex flex-col bg-slate-900 hidden overflow-hidden">
+      
+      <!-- Top Navigation -->
+      <div class="p-4 border-b border-slate-800/80 flex items-center justify-between bg-slate-950/40 backdrop-blur-md">
+        <button onclick="navigateTo('screenDashboard')" class="w-10 h-10 rounded-2xl glass-pill flex items-center justify-center text-slate-200 touch-pop active:bg-slate-800">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div class="text-center">
+          <h2 class="text-base font-bold text-white">Expense History & Weekly</h2>
+          <p class="text-[11px] text-slate-400">Analysis & Previous Data</p>
+        </div>
+        <div class="w-10 h-10"></div> <!-- Placeholder for balance -->
+      </div>
+
+      <!-- Main History Container -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-5 hide-scrollbar">
+        
+        <!-- All Time & Present Month Summary -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="glass-card p-3.5 rounded-2xl border border-indigo-500/20">
+            <p class="text-[11px] text-indigo-300 font-medium uppercase">Present Month</p>
+            <p class="text-xl font-extrabold text-white font-display mt-1">₹<span id="historyCurrentMonthVal">0</span></p>
+            <p id="historyCurrentMonthLabel" class="text-[10px] text-slate-400 mt-0.5">October 2026</p>
+          </div>
+          <div class="glass-card p-3.5 rounded-2xl border border-purple-500/20">
+            <p class="text-[11px] text-purple-300 font-medium uppercase">Total All-Time</p>
+            <p class="text-xl font-extrabold text-white font-display mt-1">₹<span id="historyAllTimeVal">0</span></p>
+            <p id="historyAllTimeCount" class="text-[10px] text-slate-400 mt-0.5">All transactions</p>
+          </div>
+        </div>
+
+        <!-- Weekly Data Section for Present Month -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-chart-simple text-indigo-400"></i> Present Month Weekly Data
+              </h3>
+              <p class="text-[11px] text-slate-400">Weekly breakdown of spending</p>
+            </div>
+            <span class="text-[11px] px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-medium" id="weeklyMonthBadge">Current</span>
+          </div>
+
+          <!-- Weekly Bars / Progress UI -->
+          <div id="weeklyBreakdownContainer" class="space-y-3 pt-1">
+            <!-- Weekly progress rows generated via JS -->
+          </div>
+        </div>
+
+        <!-- Present Month Category Split -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800">
+          <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-pie-chart text-emerald-400"></i> Category Split (This Month)
+          </h3>
+          <div class="space-y-2.5" id="monthCategorySplitContainer">
+            <!-- Split bars generated via JS -->
+          </div>
+        </div>
+
+        <!-- Complete All Months' History Section -->
+        <div>
+          <div class="flex items-center justify-between mb-2.5 px-1">
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-clock-rotate-left text-indigo-400"></i> All Months History
+              </h3>
+              <p class="text-[10px] text-slate-500">Recorded months with expandable transaction details</p>
+            </div>
+            <span class="text-[11px] text-slate-400 font-medium" id="allMonthsCountBadge">0 Months</span>
+          </div>
+
+          <div id="allMonthsContainer" class="space-y-3">
+            <!-- Complete month-by-month history cards generated via JS -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- SETTINGS & DATA MODAL -->
+    <div id="settingsModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4">
+      <div class="w-full max-w-sm glass-card rounded-3xl p-5 border border-slate-700 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center">
+              <i class="fa-solid fa-sliders"></i>
+            </div>
+            <h3 class="font-bold text-white text-base">App Settings & Data</h3>
+          </div>
+          <button onclick="toggleDataModal()" class="text-slate-400 hover:text-white text-lg">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <p class="text-xs text-slate-300 leading-relaxed">
+          <strong>Life Expensive</strong> unga device-la offline-laye safe-ah data store pannudhu. Internet theva illa.
+        </p>
+
+        <div class="space-y-2 pt-1">
+          <button onclick="loadSampleDemoData()" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 flex items-center justify-center gap-2 touch-pop">
+            <i class="fa-solid fa-database text-indigo-400"></i> Load Demo Sample Data (Optional)
+          </button>
+
+          <button onclick="clearAllData()" class="w-full py-2.5 px-3 rounded-xl bg-rose-950/40 hover:bg-rose-900/50 text-xs font-semibold text-rose-300 border border-rose-800/50 flex items-center justify-center gap-2 touch-pop">
+            <i class="fa-solid fa-trash-can"></i> Clear All Data (Reset)
+          </button>
+        </div>
+
+        <button onclick="toggleDataModal()" class="w-full py-2.5 rounded-xl bg-indigo-600 font-bold text-xs text-white touch-pop mt-2">
+          Done
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- APPLICATION LOGIC -->
+  <script>
+    // Constants & Category Configuration
+    const CATEGORIES = {
+      travel: {
+        id: 'travel',
+        name: 'Travel',
+        title: 'Travel Expensive',
+        icon: 'fa-car-side',
+        accentColor: '#38bdf8',
+        btnClass: 'bg-sky-500 hover:bg-sky-400 text-slate-950',
+        badgeBg: 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
+      },
+      food: {
+        id: 'food',
+        name: 'Food',
+        title: 'Food Expensive',
+        icon: 'fa-burger',
+        accentColor: '#f97316',
+        btnClass: 'bg-orange-500 hover:bg-orange-400 text-slate-950',
+        badgeBg: 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+      },
+      other: {
+        id: 'other',
+        name: 'Other',
+        title: 'Other Expensive',
+        icon: 'fa-shapes',
+        accentColor: '#a855f7',
+        btnClass: 'bg-purple-600 hover:bg-purple-500 text-white',
+        badgeBg: 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+      }
+    };
+
+    const STORAGE_KEY = 'life_expensive_records_v1';
+    let expenses = [];
+    let currentCategory = 'travel';
+
+    // Formatters
+    const currencyFormat = new Intl.NumberFormat('en-IN', {
+      maximumFractionDigits: 1
+    });
+
+    // Initialize App
+    window.addEventListener('DOMContentLoaded', () => {
+      loadExpenses();
+      
+      // Set default date input to today
+      const todayISO = new Date().toISOString().split('T')[0];
+      const dateInput = document.getElementById('expenseDate');
+      if (dateInput) {
+        dateInput.value = todayISO;
+        dateInput.max = todayISO; // prevent far future entry
+      }
+
+      // Update current month display
+      updateDashboard();
+    });
+
+    // Load data from LocalStorage
+    function loadExpenses() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          expenses = JSON.parse(stored);
+        } else {
+          // If fresh user, inject realistic mock data so they see the charts right away
+          injectSampleInitialData();
+        }
+      } catch (err) {
+        console.error('Error loading data:', err);
+        expenses = [];
+      }
+    }
+
+    function saveExpenses() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
+      } catch (err) {
+        console.error('Could not save to localStorage', err);
+      }
+      updateDashboard();
+    }
+
+    // Default sample data generator for immediate visual delight
+    function injectSampleInitialData() {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth(); // 0-based
+
+      const pad = (n) => String(n).padStart(2, '0');
+
+      // Helper to compute past months safely
+      function getPastDate(monthsAgo, day) {
+        const d = new Date(currentYear, currentMonth - monthsAgo, day);
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+      }
+
+      expenses = [
+        // Present Month
+        {
+          id: 'samp-1',
+          category: 'travel',
+          amount: 250,
+          note: 'Petrol pump',
+          date: getPastDate(0, 3)
+        },
+        {
+          id: 'samp-2',
+          category: 'food',
+          amount: 180,
+          note: 'Lunch at Mess',
+          date: getPastDate(0, 6)
+        },
+        {
+          id: 'samp-3',
+          category: 'food',
+          amount: 90,
+          note: 'Tea & Snacks with friends',
+          date: getPastDate(0, 12)
+        },
+        {
+          id: 'samp-4',
+          category: 'other',
+          amount: 499,
+          note: 'Mobile Recharge',
+          date: getPastDate(0, 15)
+        },
+        {
+          id: 'samp-5',
+          category: 'travel',
+          amount: 60,
+          note: 'Bus ticket to Gandhipuram',
+          date: getPastDate(0, 18)
+        },
+        // 1 Month Ago
+        {
+          id: 'samp-past-1',
+          category: 'food',
+          amount: 1250,
+          note: 'Family dinner & Restaurant',
+          date: getPastDate(1, 14)
+        },
+        {
+          id: 'samp-past-2',
+          category: 'travel',
+          amount: 800,
+          note: 'Train ticket booking',
+          date: getPastDate(1, 22)
+        },
+        {
+          id: 'samp-past-3',
+          category: 'other',
+          amount: 650,
+          note: 'Room utility grocery',
+          date: getPastDate(1, 28)
+        },
+        // 2 Months Ago
+        {
+          id: 'samp-past-4',
+          category: 'food',
+          amount: 950,
+          note: 'Biryani & sweets',
+          date: getPastDate(2, 5)
+        },
+        {
+          id: 'samp-past-5',
+          category: 'travel',
+          amount: 420,
+          note: 'Bike service & fuel',
+          date: getPastDate(2, 19)
+        },
+        {
+          id: 'samp-past-6',
+          category: 'other',
+          amount: 350,
+          note: 'Earphones replacement',
+          date: getPastDate(2, 24)
+        }
+      ];
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
+    }
+
+    // Navigation handler
+    function navigateTo(screenId) {
+      const screens = ['screenDashboard', 'screenCategoryDetails', 'screenMonthDetails'];
+      screens.forEach(s => {
+        const el = document.getElementById(s);
+        if (s === screenId) {
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+
+      if (screenId === 'screenDashboard') {
+        updateDashboard();
+      } else if (screenId === 'screenMonthDetails') {
+        renderMonthlyAndWeeklyAnalytics();
+      }
+    }
+
+    // Open Category Screen with specific config
+    function openCategoryView(catId) {
+      currentCategory = catId;
+      const config = CATEGORIES[catId];
+
+      document.getElementById('catViewTitle').textContent = config.title;
+      document.getElementById('catViewSubtitle').textContent = `Manage ${config.name} expenses`;
+
+      // Set category badge
+      const iconBadge = document.getElementById('catViewIconBadge');
+      iconBadge.className = `w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold ${config.badgeBg}`;
+      iconBadge.innerHTML = `<i class="fa-solid ${config.icon}"></i>`;
+
+      // Update button styling
+      const submitBtn = document.getElementById('catSubmitBtn');
+      submitBtn.className = `w-full py-3 rounded-xl font-bold text-sm shadow-lg touch-pop transition-all flex items-center justify-center gap-2 ${config.btnClass}`;
+
+      // Reset form inputs
+      document.getElementById('expenseAmount').value = '';
+      document.getElementById('expenseNote').value = '';
+      
+      const todayISO = new Date().toISOString().split('T')[0];
+      document.getElementById('expenseDate').value = todayISO;
+
+      renderCategoryViewList();
+      navigateTo('screenCategoryDetails');
+    }
+
+    // Submit handler for adding an expense
+    function handleFormSubmit(event) {
+      event.preventDefault();
+      const amountInput = document.getElementById('expenseAmount');
+      const noteInput = document.getElementById('expenseNote');
+      const dateInput = document.getElementById('expenseDate');
+
+      const amountVal = parseFloat(amountInput.value);
+      if (isNaN(amountVal) || amountVal <= 0) {
+        showToast('Please enter a valid amount!');
+        return;
+      }
+
+      const newExpense = {
+        id: 'exp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        category: currentCategory,
+        amount: Math.round(amountVal * 100) / 100,
+        note: noteInput.value.trim() || `${CATEGORIES[currentCategory].name} Expense`,
+        date: dateInput.value || new Date().toISOString().split('T')[0]
+      };
+
+      // Add to front of array
+      expenses.unshift(newExpense);
+      saveExpenses();
+
+      // Clear amount & note
+      amountInput.value = '';
+      noteInput.value = '';
+
+      showToast(`₹${newExpense.amount} saved in ${CATEGORIES[currentCategory].name}!`);
+      renderCategoryViewList();
+    }
+
+    // Delete single expense
+    function deleteExpense(expenseId) {
+      expenses = expenses.filter(e => e.id !== expenseId);
+      saveExpenses();
+      renderCategoryViewList();
+      showToast('Record deleted');
+    }
+
+    // Render list inside the Category Detail Screen
+    function renderCategoryViewList() {
+      const listContainer = document.getElementById('catExpenseList');
+      const totalDisplay = document.getElementById('catSpentTotal');
+      const countBadge = document.getElementById('catTransactionCountBadge');
+
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+
+      // Filter all expenses for this category
+      const catExpenses = expenses.filter(e => e.category === currentCategory);
+
+      // Current month category total
+      const currentMonthCatExpenses = catExpenses.filter(e => {
+        const d = new Date(e.date);
+        return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+      });
+
+      const currentMonthTotal = currentMonthCatExpenses.reduce((sum, item) => sum + item.amount, 0);
+      totalDisplay.textContent = currencyFormat.format(currentMonthTotal);
+      countBadge.textContent = `${currentMonthCatExpenses.length} this month`;
+
+      // Sort all items for this category by Date descending
+      const sorted = [...catExpenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      if (sorted.length === 0) {
+        listContainer.innerHTML = `
+          <div class="glass-card rounded-2xl p-6 text-center text-slate-500 border border-slate-800">
+            <i class="fa-solid fa-receipt text-3xl mb-2 text-slate-600"></i>
+            <p class="text-sm font-medium">Innum oru selavum add pannala!</p>
+            <p class="text-xs text-slate-600 mt-1">Mela irukkura box-la type panni save pannunga.</p>
+          </div>
+        `;
+        return;
+      }
+
+      listContainer.innerHTML = sorted.map(item => {
+        const itemDate = new Date(item.date);
+        const formattedDate = itemDate.toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        });
+
+        const isThisMonth = (itemDate.getFullYear() === currentYear && itemDate.getMonth() === currentMonth);
+
+        return `
+          <div class="glass-card rounded-xl p-3 flex items-center justify-between border ${isThisMonth ? 'border-slate-800' : 'border-slate-800/40 opacity-80'} hover:border-slate-700 transition">
+            <div class="flex items-center space-x-3 overflow-hidden">
+              <div class="w-9 h-9 rounded-lg bg-slate-800/80 flex items-center justify-center text-slate-300 shrink-0 text-sm">
+                <i class="fa-regular fa-calendar-check"></i>
+              </div>
+              <div class="truncate">
+                <p class="text-sm font-semibold text-white truncate">${escapeHtml(item.note)}</p>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span class="text-[11px] text-slate-400 font-medium">${formattedDate}</span>
+                  ${!isThisMonth ? '<span class="text-[9px] bg-slate-800 text-slate-400 px-1.5 py-0.2 rounded">Past Month</span>' : ''}
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center space-x-3 shrink-0 ml-2">
+              <span class="text-base font-bold text-white font-display">₹${currencyFormat.format(item.amount)}</span>
+              <button onclick="deleteExpense('${item.id}')" class="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg active:bg-slate-800 transition" title="Delete">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Update Main Dashboard metrics
+    function updateDashboard() {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+
+      // Header display: "October 2026"
+      const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+      document.getElementById('headerCurrentMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+      // Filter expenses of current month
+      let monthTotal = 0;
+      let travelTotal = 0;
+      let foodTotal = 0;
+      let otherTotal = 0;
+      let monthCount = 0;
+
+      expenses.forEach(e => {
+        const d = new Date(e.date);
+        if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
+          monthTotal += e.amount;
+          monthCount++;
+          if (e.category === 'travel') travelTotal += e.amount;
+          else if (e.category === 'food') foodTotal += e.amount;
+          else if (e.category === 'other') otherTotal += e.amount;
+        }
+      });
+
+      document.getElementById('dashTotalExpense').textContent = currencyFormat.format(monthTotal);
+      document.getElementById('dashEntriesCount').textContent = `${monthCount} transaction${monthCount === 1 ? '' : 's'}`;
+      document.getElementById('dashTravelTotal').textContent = currencyFormat.format(travelTotal);
+      document.getElementById('dashFoodTotal').textContent = currencyFormat.format(foodTotal);
+      document.getElementById('dashOtherTotal').textContent = currencyFormat.format(otherTotal);
+    }
+
+    // Render Monthly & Weekly Analytics View
+    function renderMonthlyAndWeeklyAnalytics() {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+
+      // 1. Overall stats
+      let currentMonthSpent = 0;
+      let allTimeSpent = 0;
+      const currentMonthCategoryTotals = { travel: 0, food: 0, other: 0 };
+
+      // Weekly breakdown for current month (Week 1: 1-7, Week 2: 8-14, Week 3: 15-21, Week 4+: 22-end)
+      const weeklyBuckets = [
+        { label: 'Week 1 (1 - 7)', total: 0 },
+        { label: 'Week 2 (8 - 14)', total: 0 },
+        { label: 'Week 3 (15 - 21)', total: 0 },
+        { label: 'Week 4+ (22 - end)', total: 0 }
+      ];
+
+      // Past months grouping: key = "YYYY-MM"
+      const monthlyGroups = {};
+
+      expenses.forEach(item => {
+        allTimeSpent += item.amount;
+        const d = new Date(item.date);
+        const itemYear = d.getFullYear();
+        const itemMonth = d.getMonth();
+        const itemDay = d.getDate();
+
+        // Check if current month
+        if (itemYear === currentYear && itemMonth === currentMonth) {
+          currentMonthSpent += item.amount;
+          if (currentMonthCategoryTotals[item.category] !== undefined) {
+            currentMonthCategoryTotals[item.category] += item.amount;
+          }
+
+          // Week classification
+          if (itemDay <= 7) weeklyBuckets[0].total += item.amount;
+          else if (itemDay <= 14) weeklyBuckets[1].total += item.amount;
+          else if (itemDay <= 21) weeklyBuckets[2].total += item.amount;
+          else weeklyBuckets[3].total += item.amount;
+        }
+
+        // Group into monthly buckets for history
+        const groupKey = `${itemYear}-${String(itemMonth).padStart(2, '0')}`;
+        if (!monthlyGroups[groupKey]) {
+          monthlyGroups[groupKey] = {
+            year: itemYear,
+            month: itemMonth,
+            total: 0,
+            travel: 0,
+            food: 0,
+            other: 0,
+            count: 0
+          };
+        }
+        monthlyGroups[groupKey].total += item.amount;
+        monthlyGroups[groupKey].count++;
+        if (item.category === 'travel') monthlyGroups[groupKey].travel += item.amount;
+        else if (item.category === 'food') monthlyGroups[groupKey].food += item.amount;
+        else if (item.category === 'other') monthlyGroups[groupKey].other += item.amount;
+      });
+
+      // Update Top Badges
+      document.getElementById('historyCurrentMonthVal').textContent = currencyFormat.format(currentMonthSpent);
+      document.getElementById('historyCurrentMonthLabel').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+      document.getElementById('historyAllTimeVal').textContent = currencyFormat.format(allTimeSpent);
+      document.getElementById('historyAllTimeCount').textContent = `${expenses.length} records in total`;
+      document.getElementById('weeklyMonthBadge').textContent = monthNames[currentMonth];
+
+      // 2. Render Weekly Breakdown
+      const weeklyContainer = document.getElementById('weeklyBreakdownContainer');
+      const maxWeeklyVal = Math.max(...weeklyBuckets.map(w => w.total), 1);
+
+      weeklyContainer.innerHTML = weeklyBuckets.map(w => {
+        const percentage = Math.min(100, Math.round((w.total / maxWeeklyVal) * 100));
+        return `
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300 font-medium">${w.label}</span>
+              <span class="text-white font-bold font-display">₹${currencyFormat.format(w.total)}</span>
+            </div>
+            <div class="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+              <div class="h-full bg-gradient-to-r from-indigo-500 to-sky-400 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // 3. Render Category Split for Present Month
+      const splitContainer = document.getElementById('monthCategorySplitContainer');
+      const splitCategories = [
+        { name: 'Travel', key: 'travel', color: 'bg-sky-400', textCol: 'text-sky-400' },
+        { name: 'Food', key: 'food', color: 'bg-orange-400', textCol: 'text-orange-400' },
+        { name: 'Other', key: 'other', color: 'bg-purple-400', textCol: 'text-purple-400' }
+      ];
+
+      splitContainer.innerHTML = splitCategories.map(cat => {
+        const catAmount = currentMonthCategoryTotals[cat.key] || 0;
+        const pct = currentMonthSpent > 0 ? Math.round((catAmount / currentMonthSpent) * 100) : 0;
+        return `
+          <div class="flex items-center justify-between text-xs">
+            <div class="flex items-center space-x-2 w-28">
+              <span class="w-2.5 h-2.5 rounded-full ${cat.color}"></span>
+              <span class="text-slate-300 font-medium">${cat.name}</span>
+            </div>
+            <div class="flex-1 mx-3 h-2 bg-slate-950 rounded-full overflow-hidden">
+              <div class="h-full ${cat.color} rounded-full" style="width: ${pct}%"></div>
+            </div>
+            <div class="text-right w-20">
+              <span class="font-bold text-white">₹${currencyFormat.format(catAmount)}</span>
+              <span class="text-[10px] text-slate-500 block">${pct}%</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // 4. Render Complete ALL Months' History (Chronologically descending)
+      const allMonthsContainer = document.getElementById('allMonthsContainer');
+      const sortedMonthKeys = Object.keys(monthlyGroups).sort().reverse();
+      
+      const badgeCountEl = document.getElementById('allMonthsCountBadge');
+      if (badgeCountEl) {
+        badgeCountEl.textContent = `${sortedMonthKeys.length} Month${sortedMonthKeys.length === 1 ? '' : 's'}`;
+      }
+
+      if (sortedMonthKeys.length === 0) {
+        allMonthsContainer.innerHTML = `
+          <div class="p-6 rounded-2xl glass-card text-center text-xs text-slate-500 border border-slate-800/60">
+            <i class="fa-solid fa-folder-open text-2xl text-slate-600 mb-2"></i>
+            <p>Save panna endha month data-vum innum illai!</p>
+          </div>
+        `;
+      } else {
+        allMonthsContainer.innerHTML = sortedMonthKeys.map(key => {
+          const group = monthlyGroups[key];
+          const mName = monthNames[group.month];
+          const isCurrent = (group.year === currentYear && group.month === currentMonth);
+          const collapseId = `month-collapse-${key}`;
+
+          // Filter & sort all transactions for this specific month
+          const monthTransactions = expenses
+            .filter(e => {
+              const d = new Date(e.date);
+              return d.getFullYear() === group.year && d.getMonth() === group.month;
+            })
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+          return `
+            <div class="glass-card rounded-2xl border ${isCurrent ? 'border-indigo-500/40 bg-slate-800/50' : 'border-slate-800'} overflow-hidden transition-all">
+              <!-- Month Header Card (Tap to Expand/Collapse) -->
+              <div onclick="toggleMonthAccordion('${collapseId}')" class="p-4 cursor-pointer touch-pop flex items-center justify-between select-none">
+                <div>
+                  <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-calendar-days ${isCurrent ? 'text-indigo-400' : 'text-slate-400'} text-sm"></i>
+                    <span class="font-bold text-sm text-white">${mName} ${group.year}</span>
+                    ${isCurrent ? '<span class="text-[9px] bg-indigo-500/20 text-indigo-300 font-bold px-1.5 py-0.5 rounded-full border border-indigo-400/20">Present Month</span>' : ''}
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-1">${group.count} transaction${group.count === 1 ? '' : 's'} recorded</p>
+                </div>
+                
+                <div class="flex items-center space-x-2.5">
+                  <div class="text-right">
+                    <span class="text-base font-extrabold text-white font-display">₹${currencyFormat.format(group.total)}</span>
+                  </div>
+                  <i id="chevron-${collapseId}" class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-200"></i>
+                </div>
+              </div>
+
+              <!-- Mini Category Breakdown Badges -->
+              <div class="px-4 pb-3 grid grid-cols-3 gap-2 text-center text-[11px]">
+                <div class="bg-slate-950/60 p-2 rounded-xl border border-slate-800/70">
+                  <span class="text-slate-400 block text-[10px]">Travel</span>
+                  <span class="text-sky-300 font-bold">₹${currencyFormat.format(group.travel)}</span>
+                </div>
+                <div class="bg-slate-950/60 p-2 rounded-xl border border-slate-800/70">
+                  <span class="text-slate-400 block text-[10px]">Food</span>
+                  <span class="text-orange-300 font-bold">₹${currencyFormat.format(group.food)}</span>
+                </div>
+                <div class="bg-slate-950/60 p-2 rounded-xl border border-slate-800/70">
+                  <span class="text-slate-400 block text-[10px]">Other</span>
+                  <span class="text-purple-300 font-bold">₹${currencyFormat.format(group.other)}</span>
+                </div>
+              </div>
+
+              <!-- Expandable Itemized Records Section -->
+              <div id="${collapseId}" class="hidden border-t border-slate-800/70 bg-slate-950/50 p-3 space-y-2">
+                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider px-1">Transactions (${mName} ${group.year})</p>
+                ${monthTransactions.map(t => {
+                  const tDate = new Date(t.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+                  const catConfig = CATEGORIES[t.category] || CATEGORIES.other;
+                  return `
+                    <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+                      <div class="flex items-center space-x-2.5 truncate">
+                        <div class="w-7 h-7 rounded-lg ${catConfig.badgeBg} flex items-center justify-center shrink-0 text-xs">
+                          <i class="fa-solid ${catConfig.icon}"></i>
+                        </div>
+                        <div class="truncate">
+                          <p class="text-xs font-semibold text-slate-200 truncate">${escapeHtml(t.note)}</p>
+                          <span class="text-[10px] text-slate-400">${tDate} • ${catConfig.name}</span>
+                        </div>
+                      </div>
+                      <div class="shrink-0 ml-2 font-bold text-white text-xs font-display">
+                        ₹${currencyFormat.format(t.amount)}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // Toggle month accordion
+    function toggleMonthAccordion(contentId) {
+      const container = document.getElementById(contentId);
+      const chevron = document.getElementById(`chevron-${contentId}`);
+      if (!container) return;
+
+      const isHidden = container.classList.contains('hidden');
+      if (isHidden) {
+        container.classList.remove('hidden');
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+      } else {
+        container.classList.add('hidden');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    // Modal & Data helpers
+    function toggleDataModal() {
+      const modal = document.getElementById('settingsModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+    }
+
+    function loadSampleDemoData() {
+      injectSampleInitialData();
+      toggleDataModal();
+      showToast('Sample demo data loaded!');
+      updateDashboard();
+      if (!document.getElementById('screenMonthDetails').classList.contains('hidden')) {
+        renderMonthlyAndWeeklyAnalytics();
+      }
+      if (!document.getElementById('screenCategoryDetails').classList.contains('hidden')) {
+        renderCategoryViewList();
+      }
+    }
+
+    function clearAllData() {
+      expenses = [];
+      localStorage.removeItem(STORAGE_KEY);
+      toggleDataModal();
+      showToast('All data cleared!');
+      updateDashboard();
+      if (!document.getElementById('screenMonthDetails').classList.contains('hidden')) {
+        renderMonthlyAndWeeklyAnalytics();
+      }
+      if (!document.getElementById('screenCategoryDetails').classList.contains('hidden')) {
+        renderCategoryViewList();
+      }
+    }
+
+    // Toast notification utility
+    function showToast(msg) {
+      const toast = document.getElementById('toastMessage');
+      const text = document.getElementById('toastText');
+      text.textContent = msg;
+      toast.classList.remove('-translate-y-16');
+      toast.classList.add('translate-y-0');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0');
+        toast.classList.add('-translate-y-16');
+      }, 2300);
+    }
+
+    // Safety string escaping for user notes
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>"']/g, function(m) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        }[m];
+      });
+    }
+  </script>
+</body>
+</html>
